@@ -58,12 +58,12 @@ export default function RegistrationPage() {
     setTimeout(() => {
       toast({
         title: "Registration Successful!",
-        description: "Redirecting you now...",
+        description: "Opening the next page for you...",
       });
       
       // Redirect after a short delay to allow the user to see the message
       setTimeout(() => {
-        window.location.href = "http://111.229.140.236:8502/#2ffb9408";
+        window.open("http://111.229.140.236:8502/#2ffb9408", "_blank");
       }, 1500);
     }, 1000);
   }
