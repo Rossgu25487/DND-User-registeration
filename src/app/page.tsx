@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Eye, EyeOff, ScrollText } from "lucide-react";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +23,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { PasswordGenerator } from "./components/password-generator";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
+import { auth, db } from "@/lib/firebase";
 
 const formSchema = z.object({
   username: z.string().min(3, {
@@ -48,26 +51,48 @@ export default function RegistrationPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    // This is where you would handle the form submission, e.g., call an API.
-    console.log(values);
-    // For now, we'll just log the values to the console.
-    
-    // Simulate an API call
-    setTimeout(() => {
+    try {
+      // 1. Create user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      // 2. Store user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username: values.username,
+        email: values.email,
+        createdAt: new Date(),
+      });
+
       toast({
         title: "Registration Successful!",
-        description: "Opening the next page for you...",
+        description: "Your account has been created.",
       });
-      
-      // Redirect after a short delay to allow the user to see the message
+
+      // 3. Redirect the user
       setTimeout(() => {
         window.open("http://111.229.140.236:8502/#2ffb9408", "_blank");
         // Attempt to close the current window
-        window.close();
+        setTimeout(() => window.close(), 500);
       }, 1500);
-    }, 1000);
+
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "This email is already in use. Please try another one.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "The password is too weak. Please choose a stronger password.";
+      }
+      console.error("Registration Error:", error);
+      toast({
+        title: "Registration Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
   
   const handlePasswordGenerated = (password: string) => {
@@ -156,7 +181,7 @@ export default function RegistrationPage() {
                 </Accordion>
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : 'Create Account'}
+                  {isSubmitting ? 'Registering...' : 'Create Account'}
                 </Button>
               </form>
             </Form>
