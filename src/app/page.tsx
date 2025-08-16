@@ -64,6 +64,8 @@ export default function RegistrationPage() {
       // Redirect after a short delay to allow the user to see the message
       setTimeout(() => {
         window.open("http://111.229.140.236:8502/#2ffb9408", "_blank");
+        // Attempt to close the current window
+        window.close();
       }, 1500);
     }, 1000);
   }
